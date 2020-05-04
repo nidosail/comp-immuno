@@ -9,20 +9,21 @@ Created on Mon Apr 27 20:08:16 2020
 import numpy as np
 import scipy as sp
 import copy
+import random
 
 # begin class code
 class Th17cell:
     # some random sh!t that may come into use later, still tryna figure out the role of variables defined outside of
     # initialization method
     growth_factor = 1 #what is this?
-    2Thresh = 70 #threshold of il2 required for cell prolif
-    6Thresh = 100 #threshold of il6 reuired for cell proliferation
-    7Thresh = 100 #threshold of il23 required for cell prolif
+    thresh2 = 70 #threshold of il2 required for cell proliferation
+    thresh6 = 100 #threshold of il6 reuired for cell proliferation
+    thresh7 = 100 #threshold of il23 required for cell prolif
     v23 = -3 #value that determines maximum enhancement to speed of prolif in the presence of  IL-23
     k23 = 100 #vale that determines sensitivite to IL-23
     size = 1 # number of voxels that this cell occupies
     # initialize variables, initializtion method, whatever u wanna call it. takes in position of form [x,y,z]
-    def __init__(self, pos = [0,0,0], k17 = 100, v17=200, kgm = 100, vgm = 200, dil17 = np.zeros(4), dgmcsf = np.zeros(4), dblTmr = 12, actTmr = 0, dieTmr = 36, divNum = 0):
+    def __init__(self, pos = [0,0,0], k17 = 100, v17=200, kgm = 100, vgm = 200, dil17 = np.zeros(4), dgmcsf = np.zeros(4), dblTmr = 12, actTmr = 24, dieTmr = 36, divNum = 0):
         self.k17 = k17 # michaelis menten half concentration to max rate blah blah blah constant (units arbitrary rn)
         self.v17 = v17 # michaelis menten max rate. this is a made up value, here to hold up the skeleton of a model
         self.kgm = kgm
@@ -57,12 +58,12 @@ class Th17cell:
         return [dil17_0, dgmcsf_0]
     
     def dblOrDie(self, il6, il23 = 0, il2 = 0, il7 = 0):
-        if self.dblTmr <= 0 and self.actTmr > 0 and divNum < 6 and (il6 >= self.6Thresh or il2 >= self.2Thresh or il7 >= self.7Thresh):
+        if self.dblTmr <= 0 and self.actTmr > 0 and self.divNum < 6 and (il6 >= self.thresh6 or il2 >= self.thresh2 or il7 >= self.thresh7):
             self.dblTmr = 12 + self.v23*il23/(il23 + self.k23)
             self.dieTmr = 36
             self.divNum = self.divNum + 1
             return 'dbl'
-        elif dieTmr = 0:
+        elif self.dieTmr == 0:
             return 'die'
 
 #%%
@@ -94,7 +95,7 @@ def main():
             #Here we prompt the user for the geometry of how they want the cells placed. We will likely mostly use either the None, Transwell, or Physiological
             distType = input('Please specifiy how you would like the cells to be distributed in space. Options are: None (N), Random (R), Transwell (T), or Physiological (P), Co-culture:\n')
                 
-            elif distType.lower() == 't'
+            if distType.lower() == 't':
                 Th17Place = random.shuffle(np.arange(l**2))[:Th17_0]
                 FLSPlace = random.shuffle(np.arange(l**2))[:FLS_0]
             

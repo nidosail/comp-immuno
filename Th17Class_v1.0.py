@@ -102,10 +102,6 @@ def main():
             distType = input('Please specifiy how you would like the cells to be distributed in space. Options are: None (N), Random (R), Transwell (T), or Physiological (P), Co-culture (C):\n')
                 
             if distType.lower() == 't':
-                Th17Place = random.shuffle(np.arange(l**2))
-                FLSPlace = random.shuffle(np.arange(l**2))
-                Th17Place = Th17Place[:Th17_0]
-                FLSPlace = FLSPlace[:FLS_0]
                 loc_dim = '2d' #dimension of locations
                 
             elif distType.lower() == 'r':
@@ -150,24 +146,28 @@ def main():
     print('Thank you! We are now completing initialization of the model. This may take a minute.\n')
     #This next bit is going to actually do the placing of the cells/initialization of the arrays that contain cells. 
     if dim == '2d':
-        Th17s = np.zeros((l,l),dtype = Th17cell)
-        FLSs = np.zeros((l,l), dtype = FLScell)
-        for i in Th17Place:
-            ypos = i//l
-            xpos = i - ypos*l
-            Th17s[xpos,ypos] = Th17cell(pos = [xpos,ypos])
-        for i in FLSPlace:
-            ypos = i//l
-            xpos = i - ypos*l
-            FLSs[xpos,ypos] = FLScell(pos = [xpos,ypos])
-            
-    elif dim == '0d':
-        Th17s = np.array([], dtype = Th17cell)
-        FLSs = np.array([], dtype = Th17cell)
-        for i in Th17Place:
-            Th17s[int[i]] = Th17cell()
-        for i in FLSPlace:
-            FLSs[int[i]] = FLScell()
+        Th17place = [1] * Th17_0 + [0] * ((l ** 2) - Th17_0)
+        random.shuffle(Th17place)  # this creates a vector of size 10000, or l^2 populated with zeroes and ones randomly
+        FLSplace = [1] * Th17_0 + [0] * ((l ** 2) - FLS_0)
+        random.shuffle(FLSplace)  # this creates a vector of size 10000, or l^2 populated with zeroes and ones randomly
+        Th17cellmat = np.zeros((l, l), dtype=Th17cell) # initialize Th17 placement matrix
+        FLScellmat = np.zeros((l, l), dtype=Th17cell) # initialize FLScell amtrix
+
+        for i in range(int(l ** (1 / 2))):
+            Th17cellmat[i, :] = Th17place[int(i * l):int(i * l + (l))] # make matrix w zeroes and ones
+            FLScellmat[i, :] = FLSplace[int(i * l):int(i * l + (l))] # " "
+            # for row in range():
+            for element in range(len(Th17cellmat[i, :])):
+                if Th17cellmat[i, element] == 1:
+                    Th17cellmat[i, element] = Th17cell(pos=[i, element, 0]) # populate matrix with cells at ones
+                else:
+                    Th17cellmat[i, element] = 0 # leave seroes as is.
+            for element in range(len(FLScellmat[i, :])):
+                if FLScellmat[i, element] == 1:
+                    FLScellmat[i, element] = FLScell( pos=[i, element, 0])  # populate matrix with cells at ones
+                else:
+                    FLScellmat[i, element] = 0  # leave seroes as is.
+                            # this code has been tested and verified to create a matrix w random placement of th17s
             
     elif dim == '3d':
         Th17s = np.zeros((l,l,l),dtype = Th17cell)

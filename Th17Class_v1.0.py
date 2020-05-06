@@ -153,7 +153,7 @@ def main():
         Th17cellmat = np.zeros((l, l), dtype=Th17cell) # initialize Th17 placement matrix
         FLScellmat = np.zeros((l, l), dtype=Th17cell) # initialize FLScell amtrix
 
-        for i in range(int(l ** (1 / 2))):
+        for i in range(int(l)):
             Th17cellmat[i, :] = Th17place[int(i * l):int(i * l + (l))] # make matrix w zeroes and ones
             FLScellmat[i, :] = FLSplace[int(i * l):int(i * l + (l))] # " "
             # for row in range():

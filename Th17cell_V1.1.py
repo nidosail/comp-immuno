@@ -10,6 +10,7 @@ class Th17cell:
     size = 1  # number of voxels that this cell occupies
 
     # initialize variables, initializtion method, whatever u wanna call it. takes in position of form [x,y,z]
+    # need to add numpy arrays for delayed cytokine secretion
     def __init__(self, pos=[0, 0, 0], k17=100, v17=200, kgm=100, vgm=200, delay=4, dblTmr=12, actTmr=24, dieTmr=36,
                  divNum=0):
         self.k17 = k17  # michaelis menten half concentration to max rate blah blah blah constant (units arbitrary rn)

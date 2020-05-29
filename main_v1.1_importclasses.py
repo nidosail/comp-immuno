@@ -164,3 +164,54 @@ def main():
         for j in range(len(Th17cellmat[:,i])):
             if Th17cellplace[i,j] == 1:
                 loc = Th17cellmat[i,j].pos
+        # This is the beginning of the secrete algorithm. Gets cells to sense and secrete cytokines
+    for i in range(len(Th17cellmat[1,:])):
+        for j in range(len(Th17cellmat[:,i])):
+            if Th17cellplace[i,j] == 1:
+                Thiscell = Th17cellmat[i,j]
+                loc = Thiscell.pos
+                loc = tuple(loc)
+                # sensing cytokines
+                il6_sensed = il6mat[loc]
+                il1b_sensed = il1bmat[loc]
+                il7_sensed = il7mat[loc]
+                il2_sensed = il2mat[loc]
+                il23_sensed = il23mat[loc]
+                # secreting cytokines based on sensed cytokines
+                il17_gmcsf = Thiscell.secrete(il6_sensed, il1b_sensed)
+                # secreted cytokines
+                il17_secreted = il17_gmcsf[0]
+                gmcsf_secreted = il17_gmcsf[1]
+                # placing secreted cytokines in respective matrix
+                il17mat[loc] = il17_secreted
+                gmcsfmat[loc] = gmcsf_secreted
+                # rnadom placement of proliferated cells algorithm
+                if Thiscell.dblordie(il6_sensed, il23_sensed, il2_sensed, il7_sensed) == 'dbl':
+                    # Defining cardinal direction matrix values
+                    check_up = Th17cellplace[i,j+1]
+                    check_down = Th17cellplace[i,j-1]
+                    check_l = Th17cellplace[i-1,j]
+                    check_r = Th17cellplace[i+1,j]
+                    choose = random.randint(1, 4) # choosing random direction for proliferation
+                    # UP   will need to improve this code so that it checks next direction after checking one direction
+                    if choose == 1:
+                        if check_up == 0:
+                            Th17cellplace[i, j + 1] = 1
+                            Th17cellmat[i, j + 1] = Th.Th17cell(pos = [i, j + 1, 0])
+                    # DOWN
+                    elif choose == 2:
+                        if check_down == 0:
+                            Th17cellplace[i, j - 1] = 1
+                            Th17cellmat[i, j - 1] = Th.Th17cell(pos = [i, j - 1, 0])
+                    # LEFT
+                    elif choose == 3:
+                        if check_l == 0:
+                            Th17cellplace[i - 1, j] = 1
+                            Th17cellmat[i - 1, j] = Th.Th17cell(pos = [i - 1, j, 0])
+                    # RIGHT
+                    elif choose == 4:
+                        if check_r == 0:
+                            Th17cellplace[i + 1, j] = 1
+                            Th17cellmat[i + 1, j] = Th.Th17cell(pos = [i + 1, j, 0])
+                    else:
+                        x = 1  # This is where we will "push" cells to make space

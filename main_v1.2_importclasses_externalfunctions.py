@@ -2,6 +2,7 @@ import numpy as np
 import random
 import FLScellclass as fls
 import Th17CellClass1 as Th
+import prolifcheck as pc
 
 def main():
     # First, greet the user. I want to make this a sort of user friendly interface to some degree,
@@ -92,14 +93,16 @@ def main():
         # initialize all cytokine matrices
         gmcsfmat = np.zeros((l, l, 2), dtype=float)
         il6mat = np.zeros((l, l, 2), dtype=float)
-        il1bmat = np.zeros((l, l, 2), dtype=float)
+        il1bmat = np.ones((l, l, 2), dtype=float)
         il17mat = np.zeros((l, l, 2), dtype=float)
-        il6mat = np.zeros((l, l, 2), dtype=float)
+        il7mat = np.ones((l, l, 2), dtype=float)
         il8mat = np.zeros((l, l, 2), dtype=float)
         tnfamat = np.zeros((l, l, 2), dtype=float)
+        il2mat = np.zeros((l, l, 2), dtype=float)
+        il23mat = np.zeros((l, l, 2), dtype=float)
 
 
-        for i in range(int(l ** (1 / 2))):
+        for i in range(int(l)):
             Th17cellmat[i, :] = Th17place[int(i * l):int(i * l + (l))] # make matrix w zeroes and ones
             FLScellmat[i, :] = FLSplace[int(i * l):int(i * l + (l))] # " "
             Th17cellplace[i, :] = Th17place[int(i * l):int(i * l + (l))] # make matrix w zeroes and ones
@@ -111,7 +114,7 @@ def main():
                     Th17cellmat[i, element] = 0 # leave seroes as is.
             for element in range(len(FLScellmat[i, :])):
                 if FLScellmat[i, element] == 1:
-                    FLScellmat[i, element] = fls.FLScell( pos=[i, element, 1])  # populate matrix with cells at ones
+                    FLScellmat[i, element] = fls.FLScell(pos=[i, element, 1])  # populate matrix with cells at ones
                 else:
                     FLScellmat[i, element] = 0  # leave seroes as is.
                             # this code has been tested and verified to create a matrix w random placement of th17s
@@ -158,13 +161,8 @@ def main():
                     else:
                         FLScellmat[i, element] = 0  # leave seroes as is.
                                 # this code has been tested and verified to create a matrix w random placement of th17s
-    
-    # This is the beginning of the secrete algorithm. Gets positions of all cells in Th17cellmat
-    for i in range(len(Th17cellmat[1,:])):
-        for j in range(len(Th17cellmat[:,i])):
-            if Th17cellplace[i,j] == 1:
-                loc = Th17cellmat[i,j].pos
-        # This is the beginning of the secrete algorithm. Gets cells to sense and secrete cytokines
+
+    # This is the beginning of the secrete algorithm. Gets cells to sense and secrete cytokines
     for i in range(len(Th17cellmat[1,:])):
         for j in range(len(Th17cellmat[:,i])):
             if Th17cellplace[i,j] == 1:
@@ -188,30 +186,7 @@ def main():
                 # rnadom placement of proliferated cells algorithm
                 if Thiscell.dblordie(il6_sensed, il23_sensed, il2_sensed, il7_sensed) == 'dbl':
                     # Defining cardinal direction matrix values
-                    check_up = Th17cellplace[i,j+1]
-                    check_down = Th17cellplace[i,j-1]
-                    check_l = Th17cellplace[i-1,j]
-                    check_r = Th17cellplace[i+1,j]
-                    choose = random.randint(1, 4) # choosing random direction for proliferation
-                    # UP   will need to improve this code so that it checks next direction after checking one direction
-                    if choose == 1:
-                        if check_up == 0:
-                            Th17cellplace[i, j + 1] = 1
-                            Th17cellmat[i, j + 1] = Th.Th17cell(pos = [i, j + 1, 0])
-                    # DOWN
-                    elif choose == 2:
-                        if check_down == 0:
-                            Th17cellplace[i, j - 1] = 1
-                            Th17cellmat[i, j - 1] = Th.Th17cell(pos = [i, j - 1, 0])
-                    # LEFT
-                    elif choose == 3:
-                        if check_l == 0:
-                            Th17cellplace[i - 1, j] = 1
-                            Th17cellmat[i - 1, j] = Th.Th17cell(pos = [i - 1, j, 0])
-                    # RIGHT
-                    elif choose == 4:
-                        if check_r == 0:
-                            Th17cellplace[i + 1, j] = 1
-                            Th17cellmat[i + 1, j] = Th.Th17cell(pos = [i + 1, j, 0])
-                    else:
-                        x = 1  # This is where we will "push" cells to make space
+                    prolifloc = pc.checkaround(Th17cellplace, i, j) # this uses the written function to check all four directions in a separate file]
+                    # prolifloc needs to be tuple to be referenced as the indices of a matrix. places Th17cell there
+                    # need to make improvements to prolifcheck file
+                    Th17cellmat[tuple(prolifloc)] = Th.Th17cell(pos=prolifloc + [0])

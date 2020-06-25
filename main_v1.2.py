@@ -2,7 +2,7 @@ import numpy as np
 import random
 import FLScellclass as fls
 import Th17CellClass1 as Th
-import prolifcheck as pc
+import vNNeighborCheck as vn
 
 def main():
     # First, greet the user. I want to make this a sort of user friendly interface to some degree,
@@ -38,19 +38,19 @@ def main():
                 'Please specifiy how you would like the cells to be distributed in space. Options are: None (N), Random (R), Transwell (T), or Physiological (P), Co-culture (C):\n')
 
             if distType.lower() == 't':
-                dim = '2d'  # dimension of locations
+                dim = 2  # dimension of locations
 
             elif distType.lower() == 'r':
                 placement = random.shuffle(np.arange(l ** 3))
                 FLSPlace = placement[:FLS_0]
                 Th17Place = placement[FLS_0:Th17_0]
-                dim = '3d'  # dimension of location matrix
+                dim = 3  # dimension of location matrix
 
             elif distType.lower() == 'n':
                 Th17Place = np.zeros((Th17_0))
                 FLSPlace = np.zeros((FLS_0))
                 l = 1
-                dim = '1d'
+                dim = 1
 
             elif distType.lower() == 'p':
                 print('This spatial arrangement isnt supported yet')
@@ -82,7 +82,7 @@ def main():
     # %%
     print('Thank you! We are now completing initialization of the model. This may take a minute.\n')
     # This next bit is going to actually do the placing of the cells/initialization of the arrays that contain cells.
-    if dim == '2d':
+    if dim == 2:
         Th17place = [1] * Th17_0 + [0] * ((l ** 2) - Th17_0)
         random.shuffle(Th17place)  # this creates a vector of size 1000 populated with zeroes and ones randomly
         FLSplace = [1] * FLS_0 + [0] * ((l ** 2) - FLS_0)
@@ -90,6 +90,7 @@ def main():
         Th17cellmat = np.zeros((l, l), dtype=Th.Th17cell) # initialize Th17 placement matrix
         FLScellmat = np.zeros((l, l), dtype=fls.FLScell) # initialize FLScell amtrix
         Th17cellplace = np.zeros((l, l))  # initialize Th17 reference matrix
+        FLScellplace = np.zeros((l, l))  # initialize FLS reference matrix
         # initialize all cytokine matrices
         gmcsfmat = np.zeros((l, l, 2), dtype=float)
         il6mat = np.zeros((l, l, 2), dtype=float)
@@ -106,6 +107,7 @@ def main():
             Th17cellmat[i, :] = Th17place[int(i * l):int(i * l + (l))] # make matrix w zeroes and ones
             FLScellmat[i, :] = FLSplace[int(i * l):int(i * l + (l))] # " "
             Th17cellplace[i, :] = Th17place[int(i * l):int(i * l + (l))] # make matrix w zeroes and ones
+            FLScellplace[i,:] = FLSplace[int(i * l):int(i * l + (l))]
             # for row in range():
             for element in range(len(Th17cellmat[i, :])):
                 if Th17cellmat[i, element] == 1:
@@ -121,7 +123,7 @@ def main():
 
             # print(Th17cellmat)
 
-    elif dim == '1d':
+    elif dim == 1:
         Th17place = [1] * Th17_0 + [0] * ((l) - Th17_0)
         random.shuffle(Th17place)  # this creates a vector of size 1000 populated with zeroes and ones randomly
         FLSplace = [1] * FLS_0 + [0] * ((l) - FLS_0)
@@ -140,7 +142,7 @@ def main():
             else:
                 FLScellmat[element] = 0  # leave zeroes as is.
 
-    elif dim == '3d': # this is still in progress
+    elif dim == 3: # this is still in progress
         Th17place = [1] * Th17_0 + [0] * ((l ** 3) - Th17_0)
         random.shuffle(Th17place)  # this creates a vector of size 1000 populated with zeroes and ones randomly
         Th17cellmat = np.zeros((l, l, l), dtype=Th.Th17cell) # initialize Th17 placement matrix
@@ -163,12 +165,12 @@ def main():
                                 # this code has been tested and verified to create a matrix w random placement of th17s
 
     # This is the beginning of the secrete algorithm. Gets cells to sense and secrete cytokines
+    # Th17 cell dynamics
     for i in range(len(Th17cellmat[1,:])):
         for j in range(len(Th17cellmat[:,i])):
             if Th17cellplace[i,j] == 1:
                 Thiscell = Th17cellmat[i,j]
-                loc = Thiscell.pos
-                loc = tuple(loc)
+                loc = tuple(Thiscell.pos)
                 # sensing cytokines
                 il6_sensed = il6mat[loc]
                 il1b_sensed = il1bmat[loc]
@@ -185,8 +187,48 @@ def main():
                 gmcsfmat[loc] = gmcsf_secreted
                 # rnadom placement of proliferated cells algorithm
                 if Thiscell.dblordie(il6_sensed, il23_sensed, il2_sensed, il7_sensed) == 'dbl':
+                    # This is what happens when cells proliferate
                     # Defining cardinal direction matrix values
-                    prolifloc = pc.checkaround(Th17cellplace, i, j) # this uses the written function to check all four directions in a separate file]
+                    prolifinf = vn.checkaround(Th17cellplace, i, j) # this uses the written function to check all four directions in a separate file]
+                    prolifloc = prolifinf[0]
                     # prolifloc needs to be tuple to be referenced as the indices of a matrix. places Th17cell there
                     # need to make improvements to prolifcheck file
-                    Th17cellmat[tuple(prolifloc)] = Th.Th17cell(pos=prolifloc + [0])
+                    Th17cellmat[tuple(prolifloc)] = Th.Th17cell(pos=prolifloc)
+                    Th17cellplace[tuple(prolifloc)] = 1
+                elif Thiscell.dblordie(il6_sensed, il23_sensed, il2_sensed, il7_sensed) == 'die':
+                    # This is what happens when cells die
+                    Th17cellplace[loc] = 0
+                    Th17cellmat[loc] = 0
+    # FLS cell dynamics
+    for i in range(len(FLScellmat[1,:])):
+        for j in range(len(FLScellmat[:,i])):
+            if FLScellplace[i,j] == 1:
+                Thisflscell = FLScellmat[i,j]
+                loc = tuple(Thisflscell.pos)
+                # sensing cytokines
+                il6_sensed = il6mat[loc]
+                il1b_sensed = il1bmat[loc]
+                il7_sensed = il7mat[loc]
+                il2_sensed = il2mat[loc]
+                il23_sensed = il23mat[loc]
+                # secreting cytokines based on sensed cytokines
+                il17_gmcsf = Thisflscell.secrete(il6_sensed, il1b_sensed)
+                # secreted cytokines
+                il17_secreted = il17_gmcsf[0]
+                gmcsf_secreted = il17_gmcsf[1]
+                # placing secreted cytokines in respective matrix
+                il17mat[loc] = il17_secreted
+                gmcsfmat[loc] = gmcsf_secreted
+                # rnadom placement of proliferated cells algorithm
+                if Thisflscell.dblordie(il6_sensed, il23_sensed, il2_sensed, il7_sensed) == 'dbl':
+                    # This is what happens when cells proliferate
+                    # Defining cardinal direction matrix values
+                    prolifinf = vn.checkaround(FLScellplace, loc, dim) # this uses the written function to check all four directions in a separate file]
+                    prolifloc = prolifinf[0]
+                    # prolifloc needs to be tuple to be referenced as the indices of a matrix. places Th17cell there
+                    # need to make improvements to prolifcheck file
+                    FLScellmat[tuple(prolifloc)] = fls.FLScell(pos=prolifloc)
+                elif Thisflscell.dblordie(il6_sensed, il23_sensed, il2_sensed, il7_sensed) == 'die':
+                    # This is what happens when cells die
+                    Th17cellplace[loc] = 0
+                    Th17cellmat[loc] = 0

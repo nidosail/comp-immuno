@@ -103,20 +103,30 @@ def checkaround(cellplacemat, loc):
 def pushCell(cellplacemat, loc):
     dim = len(cellplacemat.shape)
     random.randint(0, dim * 2 - 1)
-    matx = cellplacemat.shape[0]
-    maty = cellplacemat.shape[1]
-    if dim == 3:
+    if dim >= 1:
+        matx = cellplacemat.shape[0]
+        if dim == 1:
+            print('this dimension is not supported yet')
+    if dim >= 2:
+        maty = cellplacemat.shape[1]
+        if dim == 2:
+            xpos = cellplacemat[matx - loc[0]:, loc[1]]
+            xneg = cellplacemat[abs(loc[0] - matx):, loc[1]]
+            ypos = cellplacemat[loc[0], maty - loc[1]:]
+            yneg = cellplacemat[loc[0], abs(loc[1] - maty):]
+    if dim >= 3:
         matz = cellplacemat.shape[2]
         zpos = cellplacemat[loc[0], loc[1], matz - loc[2]:]
         zneg = cellplacemat[loc[0], loc[1], abs(loc[2] - matz):]
-    xpos = cellplacemat[matx - loc[0]:, loc[1], loc[2]]
-    xneg = cellplacemat[abs(loc[0] - matx):, loc[1], loc[2]]
-    ypos = cellplacemat[loc[0], maty - loc[1]:, loc[2]]
-    yneg = cellplacemat[loc[0], abs(loc[1] - maty):, loc[2]]
-    choose = np.arange(0,2*dim)
+        xpos = cellplacemat[matx - loc[0]:, loc[1], loc[2]]
+        xneg = cellplacemat[abs(loc[0] - matx):, loc[1], loc[2]]
+        ypos = cellplacemat[loc[0], maty - loc[1]:, loc[2]]
+        yneg = cellplacemat[loc[0], abs(loc[1] - maty):, loc[2]]
 
+    choose = np.arange(0,2*dim)
+    random.shuffle(choose)
     def checkforpush(vec):
-        pushnum = 0 # initialize variabe describing number of cells needed to push
+        pushnum = 1 # initialize variabe describing number of cells needed to push
         for n in vec:
             if n > 0:
                 pushnum += 1 # for each cell in the row, add one to the number needed to be pushed
@@ -127,28 +137,30 @@ def pushCell(cellplacemat, loc):
         if n == 0:
             if 0 in xpos:
                 pushnum = checkforpush(xpos)
-                direc = 'x positive'
+                direc = np.array([1, 0, 0])
         if n == 1:
             if 0 in xneg:
                 pushnum = checkforpush(xpos)
-                direc = 'x negative'
+                direc = np.array([-1, 0, 0])
         if n == 2:
             if 0 in ypos:
                 pushnum = checkforpush(xpos)
-                direc = 'y positive'
+                direc = np.array([0, 1, 0])
         if n == 3:
             if 0 in yneg:
                 pushnum = checkforpush(xpos)
-                direc = 'y negative'
+                direc = np.array([0, -1, 0])
         if n == 4:
             if 0 in zpos:
                 pushnum = checkforpush(xpos)
-                direc = 'z positive'
+                direc = np.array([0, 0, 1])
         if n == 5:
             if 0 in zneg:
                 pushnum = checkforpush(xpos)
-                direc = 'z negative'
-        else:
-            print('The area has no more space for new cells')
+                direc = np.array([0, 0, -1])
+        if n == choose[-1] and 0 not in cellplacemat:
+            print('There is no room to proliferate')
+        push = direc * pushnum + 1
+    return [direc, push] # returns direction of push for proliferation and how many cells needed to be pushed
 
-    return [direc, pushnum] # returns direction of push for proliferation and how many cells needed to be pushed
+

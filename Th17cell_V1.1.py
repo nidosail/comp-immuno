@@ -1,3 +1,5 @@
+import numpy as np
+
 class Th17cell:
     # some random sh!t that may come into use later, still tryna figure out the role of variables defined outside of
     # initialization method

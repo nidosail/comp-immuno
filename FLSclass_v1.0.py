@@ -52,8 +52,9 @@ class FLScell:
                 self.v8 * (gmcsf / (self.k8 + gmcsf)) * (il1b / (self.k8 + il1b)) * (tnfa / (self.k8 + tnfa))]
             self.actTmr = self.actTmr - 1
         else:
-            self.dil17 = self.dil17[1:] + [0]
-            self.dgmcsf = self.dil17[1:] + [0]
+            self.dil6 = self.dil6[1:] + [0]
+            self.dil8 = self.dil8[1:] + [0]
+            self.dil1b = self.dil1b[1:] + [0]
         # return the values of cytokines to be secreted
         return [dil1b_0, dil6_0, dil8_0]
 

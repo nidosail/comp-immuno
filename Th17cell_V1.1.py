@@ -10,7 +10,6 @@ class Th17cell:
     v23 = -3  # value that determines maximum enhancement to speed of prolif in the presence of  IL-23
     k23 = 100  # vale that determines sensitivite to IL-23
     size = 1  # number of voxels that this cell occupies
-
     # initialize variables, initializtion method, whatever u wanna call it. takes in position of form [x,y,z]
     # need to add numpy arrays for delayed cytokine secretion
     def __init__(self, pos=[0, 0, 0], k17=100, v17=200, kgm=100, vgm=200, delay=4, dblTmr=12, actTmr=24, dieTmr=36,
@@ -48,12 +47,12 @@ class Th17cell:
         # return the values of cytokines to be secreted
         return [dil17_0, dgmcsf_0]
 
-    def dblOrDie(self, il6, il23=0, il2=0, il7=0):
+    def dblordie(self, il6, il23=0, il2=0, il7=0):
+        self.dblTmr -= 1  # self.v23 * il23 / (il23 + self.k23) <- Why is this here?
         if self.dblTmr <= 0 and self.actTmr > 0 and self.divNum < 6 and (
                 il6 >= self.thresh6 or il2 >= self.thresh2 or il7 >= self.thresh7):
-            self.dblTmr = 12 + self.v23 * il23 / (il23 + self.k23)
-            self.dieTmr = 36
-            self.divNum = self.divNum + 1
+            self.dieTmr -= 1
+            self.divNum += 1
             return 'dbl'
         elif self.dieTmr == 0:
             return 'die'
